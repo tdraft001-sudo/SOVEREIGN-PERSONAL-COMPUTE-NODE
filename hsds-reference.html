@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSDS · Sovereign Personal Compute Node</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:       #040406;
+  --bg2:      #080810;
+  --surface:  #0c0c14;
+  --border:   #14141e;
+  --border2:  #1c1c28;
+  --dim:      #3a3a52;
+  --mid:      #606078;
+  --text:     #b8b8d0;
+  --hi:       #e8e8f8;
+  --white:    #f4f4fc;
+  --green:    #22c55e;
+  --amber:    #f59e0b;
+  --red:      #ef4444;
+  --blue:     #60a5fa;
+  --cyan:     #22d3ee;
+  --mono:     'IBM Plex Mono', 'Courier New', monospace;
+}
+html { font-size: 13px; background: var(--bg); scroll-behavior: smooth; }
+body {
+  font-family: var(--mono);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+::selection { background: #22c55e30; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── GRID SHELL ── */
+#shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+
+/* ── TOP BAR ── */
+#topbar {
+  grid-column: 1 / -1;
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.tb-left { display: flex; align-items: center; gap: 20px; }
+.tb-logo { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--white); }
+.tb-sep { width: 1px; height: 16px; background: var(--border2); }
+.tb-tag { font-size: 9px; letter-spacing: 2px; color: var(--dim); }
+.tb-right { display: flex; align-items: center; gap: 16px; }
+.tb-badge {
+  font-size: 9px; letter-spacing: 1px;
+  padding: 3px 8px; border-radius: 2px;
+  border: 1px solid;
+}
+.badge-green { color: var(--green); border-color: #0a3a1a; background: #050f08; }
+.badge-amber { color: var(--amber); border-color: #3a2500; background: #0e0800; }
+.tb-version { font-size: 9px; color: var(--dim); letter-spacing: 2px; }
+
+/* ── SIDEBAR ── */
+#sidebar {
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+  padding: 20px 0;
+  position: sticky;
+  top: 48px;
+  height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+.nav-section { margin-bottom: 24px; }
+.nav-section-label {
+  font-size: 8px; letter-spacing: 3px; color: var(--dim);
+  padding: 0 18px 8px;
+  display: block;
+  text-transform: uppercase;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 18px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all .12s;
+  text-decoration: none;
+}
+.nav-item:hover { background: var(--bg2); color: var(--hi); }
+.nav-item.active {
+  background: var(--surface);
+  border-left-color: var(--green);
+  color: var(--hi);
+}
+.nav-item-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--dim); flex-shrink: 0;
+  transition: background .12s;
+}
+.nav-item.active .nav-item-dot { background: var(--green); }
+.nav-item-label { font-size: 11px; flex: 1; }
+.nav-item-ref { font-size: 9px; color: var(--dim); letter-spacing: 1px; }
+
+/* ── MAIN ── */
+#main {
+  overflow-y: auto;
+  padding: 0;
+}
+
+/* ── SECTIONS ── */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── HERO ── */
+#sec-overview {
+  display: none;
+}
+#sec-overview.active {
+  display: grid;
+  grid-template-rows: auto auto auto;
+}
+.hero {
+  padding: 56px 48px 40px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, #22c55e08 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-eye { font-size: 9px; letter-spacing: 3px; color: var(--dim); margin-bottom: 18px; }
+.hero-title {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+.hero-title span { color: var(--green); }
+.hero-sub {
+  font-size: 13px;
+  color: var(--mid);
+  line-height: 1.8;
+  max-width: 520px;
+  margin-top: 16px;
+  font-style: italic;
+}
+.hero-meta {
+  margin-top: 28px;
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.hero-stat { }
+.hero-stat-num { font-size: 22px; font-weight: 700; color: var(--green); line-height: 1; }
+.hero-stat-lbl { font-size: 9px; color: var(--dim); letter-spacing: 2px; margin-top: 4px; }
+
+/* ── PRINCIPLES GRID ── */
+.principles {
+  padding: 32px 48px;
+  border-bottom: 1px solid var(--border);
+}
+.principles-label { font-size: 9px; letter-spacing: 3px; color: var(--dim); margin-bottom: 20px; }
+.principles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 2px;
+}
+.principle {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 16px 14px;
+}
+.principle-icon { font-size: 14px; margin-bottom: 8px; }
+.principle-name { font-size: 11px; color: var(--hi); font-weight: 500; margin-bottom: 4px; }
+.principle-def { font-size: 10px; color: var(--dim); line-height: 1.6; }
+
+/* ── LIFECYCLE DIAGRAM ── */
+.lifecycle-wrap {
+  padding: 32px 48px;
+  border-bottom: 1px solid var(--border);
+}
+.lifecycle-label { font-size: 9px; letter-spacing: 3px; color: var(--dim); margin-bottom: 20px; }
+.lifecycle-diagram {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 2.2;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 20px 24px;
+  overflow-x: auto;
+}
+.lc-state {
+  display: inline-block;
+  padding: 2px 10px;
+  border: 1px solid;
+  border-radius: 2px;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.lc-genesis  { color: #a78bfa; border-color: #3d2a80; background: #0e0820; }
+.lc-landing  { color: var(--blue); border-color: #1a3060; background: #060f20; }
+.lc-apply    { color: var(--amber); border-color: #3a2500; background: #0e0800; }
+.lc-seal     { color: var(--green); border-color: #0a3a1a; background: #050f08; }
+.lc-rollback { color: var(--red); border-color: #3a0a0a; background: #0f0505; }
+.lc-rebuild  { color: var(--mid); border-color: var(--border2); background: var(--surface); }
+.lc-arrow { color: var(--dim); margin: 0 8px; }
+
+/* ── GENERIC CONTENT SECTION ── */
+.content-section {
+  padding: 40px 48px;
+  max-width: 800px;
+}
+.cs-eyebrow { font-size: 9px; letter-spacing: 3px; color: var(--dim); margin-bottom: 10px; }
+.cs-title { font-size: 20px; font-weight: 700; color: var(--white); margin-bottom: 20px; letter-spacing: 0.5px; }
+.cs-lead { font-size: 13px; color: var(--text); line-height: 1.9; margin-bottom: 28px; }
+
+/* ── DISCLOSURE BLOCKS ── */
+.disclosure { margin-bottom: 4px; }
+.disc-trigger {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 12px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  transition: border-color .12s, background .12s;
+}
+.disc-trigger:hover { border-color: var(--border2); background: #0e0e18; }
+.disc-trigger.open { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.disc-status {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.disc-id { font-size: 10px; min-width: 60px; letter-spacing: 1px; }
+.disc-title { font-size: 12px; color: var(--hi); flex: 1; }
+.disc-ref { font-size: 9px; color: var(--dim); flex-shrink: 0; }
+.disc-chevron { font-size: 9px; color: var(--dim); flex-shrink: 0; transition: transform .15s; }
+.disc-trigger.open .disc-chevron { transform: rotate(180deg); }
+
+.disc-body {
+  display: none;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  padding: 16px 16px 16px 32px;
+}
+.disc-body.open { display: block; }
+.disc-body p { font-size: 12px; color: var(--text); line-height: 1.8; margin-bottom: 10px; }
+.disc-body p:last-child { margin-bottom: 0; }
+.disc-body code {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 2px;
+  color: var(--cyan);
+}
+.disc-note { font-size: 10px; color: var(--dim); margin-top: 8px; letter-spacing: 1px; }
+
+/* ── SPEC TABLE ── */
+.spec-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 11px; }
+.spec-table th {
+  text-align: left;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.spec-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: top;
+}
+.spec-table tr:hover td { background: var(--bg2); }
+.spec-table td:first-child { color: var(--hi); min-width: 120px; }
+.spec-table .mono-val { color: var(--cyan); font-size: 10px; }
+.spec-table .ref-val { color: var(--dim); font-size: 10px; letter-spacing: 1px; }
+
+/* ── CODE BLOCK ── */
+.code-block {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 16px 20px;
+  font-size: 11px;
+  color: var(--text);
+  line-height: 1.9;
+  overflow-x: auto;
+  margin: 16px 0;
+  position: relative;
+}
+.code-block .cb-label {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  margin-bottom: 10px;
+  display: block;
+}
+.code-block .kw  { color: #a78bfa; }
+.code-block .str { color: var(--green); }
+.code-block .cmt { color: var(--dim); font-style: italic; }
+.code-block .num { color: var(--amber); }
+.code-block .typ { color: var(--cyan); }
+.code-block .fld { color: var(--blue); }
+
+/* ── STATUS COLORS ── */
+.s-pass   { background: var(--green); }
+.s-warn   { background: var(--amber); }
+.s-fail   { background: var(--red); }
+.s-frozen { background: var(--cyan); }
+.s-info   { background: var(--blue); }
+
+.c-pass   { color: var(--green); }
+.c-warn   { color: var(--amber); }
+.c-fail   { color: var(--red); }
+.c-cyan   { color: var(--cyan); }
+.c-blue   { color: var(--blue); }
+.c-dim    { color: var(--dim); }
+
+/* ── MANIFEST LAYOUT ── */
+.manifest-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
+  margin: 16px 0;
+}
+.mf-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-size: 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.mf-field { color: var(--blue); min-width: 160px; padding: 8px 14px; border-right: 1px solid var(--border); }
+.mf-type  { color: var(--cyan); min-width: 100px; padding: 8px 14px; border-right: 1px solid var(--border); }
+.mf-bytes { color: var(--amber); min-width: 60px; padding: 8px 14px; border-right: 1px solid var(--border); text-align: right; }
+.mf-note  { color: var(--dim); padding: 8px 14px; font-size: 10px; flex: 1; }
+.mf-header { background: var(--bg2); }
+.mf-header .mf-field,
+.mf-header .mf-type,
+.mf-header .mf-bytes,
+.mf-header .mf-note {
+  color: var(--dim); font-size: 9px; letter-spacing: 2px;
+}
+.mf-total {
+  background: var(--bg2);
+  border-color: var(--border2);
+}
+.mf-total .mf-bytes { color: var(--green); font-weight: 700; }
+
+/* ── HARDWARE TABLE ── */
+.hw-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 2px;
+  margin: 16px 0;
+}
+.hw-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 16px 14px;
+}
+.hw-card-head { font-size: 9px; letter-spacing: 2px; color: var(--dim); margin-bottom: 8px; }
+.hw-card-target { font-size: 11px; color: var(--cyan); margin-bottom: 6px; font-weight: 500; }
+.hw-card-device { font-size: 12px; color: var(--hi); margin-bottom: 10px; }
+.hw-card-specs { font-size: 10px; color: var(--dim); line-height: 1.7; }
+.hw-card-specs span { color: var(--text); }
+
+/* ── INLINE BADGE ── */
+.ibadge {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 1px 6px;
+  border-radius: 2px;
+  border: 1px solid;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+.ib-frozen { color: var(--cyan); border-color: #0a3040; background: #040d12; }
+.ib-v2new  { color: #a78bfa; border-color: #2a1a60; background: #080614; }
+.ib-v1     { color: var(--dim); border-color: var(--border); background: var(--surface); }
+
+/* ── FOOTER ── */
+#footer {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--border);
+  padding: 14px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: var(--bg);
+}
+.footer-txt { font-size: 9px; color: var(--dim); letter-spacing: 2px; }
+.footer-link { font-size: 9px; color: var(--dim); letter-spacing: 1px; text-decoration: none; }
+.footer-link:hover { color: var(--text); }
+
+/* ── SCROLLBAR FOR SIDEBAR ── */
+#sidebar::-webkit-scrollbar { width: 3px; }
+#sidebar::-webkit-scrollbar-track { background: transparent; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 680px) {
+  #shell { grid-template-columns: 1fr; }
+  #sidebar { display: none; }
+  .hero { padding: 32px 20px 24px; }
+  .content-section { padding: 28px 20px; }
+  .principles { padding: 24px 20px; }
+  .lifecycle-wrap { padding: 24px 20px; }
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.section.active { animation: fadeIn .18s ease; }
+</style>
+</head>
+<body>
+
+<div id="shell">
+
+<!-- ── TOP BAR ── -->
+<div id="topbar">
+  <div class="tb-left">
+    <div class="tb-logo">HSDS</div>
+    <div class="tb-sep"></div>
+    <div class="tb-tag">SOVEREIGN PERSONAL COMPUTE NODE</div>
+  </div>
+  <div class="tb-right">
+    <div class="tb-badge badge-green">v1 PRODUCTION</div>
+    <div class="tb-badge badge-amber">v2 FROZEN</div>
+    <div class="tb-version">2026-06-07</div>
+  </div>
+</div>
+
+<!-- ── SIDEBAR ── -->
+<nav id="sidebar">
+
+  <div class="nav-section">
+    <span class="nav-section-label">Entry Point</span>
+    <a class="nav-item active" onclick="show('overview')" href="#">
+      <span class="nav-item-dot"></span>
+      <span class="nav-item-label">Overview</span>
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <span class="nav-section-label">Constitution</span>
+    <a class="nav-item" onclick="show('lifecycle')" href="#">
+      <span class="nav-item-dot"></span>
+      <span class="nav-item-label">Lifecycle</span>
+      <span class="nav-item-ref">§3</span>
+    </a>
+    <a class="nav-item" onclick="show('state')" href="#">
+      <span class="nav-item-dot"></span>
+      <span class="nav-item-label">State Model</span>
+      <span class="nav-item-ref">§4–5</span>
+    </a>
+    <a class="nav-item" onclick="show('identity')" href="#">
+      <span class="nav-item-dot"></span>
+      <span class="nav-item-label">Identity & Keys</span>
+      <span class="nav-item-ref">§8–9</span>
+    </a>
+    <a class="nav-item" onclick="show('network')" href="#">
+      <span class="nav-item-dot"></span>
+      <span class="nav-item-label">Network</span>
+      <span class="nav-item-ref">§10</span>
+    </a>
+    <a class="nav-item" onclick="show('actions')" href="#">
+      <span class="nav-item-dot"></span>
+      <span class="nav-item-label">API Actions</span>
+      <span class="nav-item-ref">§6–7</span>
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <span class="nav-section-label">v2 Extensions</span>
+    <a class="nav-item" onclick="show('services')" href="#">
+      <span class="nav-item-dot"></span>
+      <span class="nav-item-label">Service Layer</span>
+      <span class="nav-item-ref">§11</span>
+    </a>
+    <a class="nav-item" onclick="show('sealed-js')" href="#">
+      <span class="nav-item-dot"></span>
+      <span class="nav-item-label">sealed_js</span>
+      <span class="nav-item-ref">§11.7</span>
+    </a>
+    <a class="nav-item" onclick="show('manifest')" href="#">
+      <span class="nav-item-dot"></span>
+      <span class="nav-item-label">Manifest Format</span>
+      <span class="nav-item-ref">§11.2</span>
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <span class="nav-section-label">Infrastructure</span>
+    <a class="nav-item" onclick="show('hardware')" href="#">
+      <span class="nav-item-dot"></span>
+      <span class="nav-item-label">Hardware Targets</span>
+      <span class="nav-item-ref">§15</span>
+    </a>
+    <a class="nav-item" onclick="show('security')" href="#">
+      <span class="nav-item-dot"></span>
+      <span class="nav-item-label">Security Contract</span>
+      <span class="nav-item-ref">§11–13</span>
+    </a>
+    <a class="nav-item" onclick="show('recovery')" href="#">
+      <span class="nav-item-dot"></span>
+      <span class="nav-item-label">Recovery</span>
+      <span class="nav-item-ref">§14</span>
+    </a>
+    <a class="nav-item" onclick="show('interop')" href="#">
+      <span class="nav-item-dot"></span>
+      <span class="nav-item-label">v1 Interop</span>
+      <span class="nav-item-ref">§17</span>
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <span class="nav-section-label">Engineering</span>
+    <a class="nav-item" onclick="show('roadmap')" href="#">
+      <span class="nav-item-dot"></span>
+      <span class="nav-item-label">Roadmap</span>
+    </a>
+  </div>
+
+</nav>
+
+<!-- ── MAIN ── -->
+<main id="main">
+
+  <!-- OVERVIEW -->
+  <section id="sec-overview" class="section active">
+
+    <div class="hero">
+      <div class="hero-eye">HEADLESS · SEALED · DISTRIBUTED · SOVEREIGN</div>
+      <div class="hero-title">Personal Compute<br><span>Without the Cloud</span></div>
+      <div class="hero-sub">A sealed, headless, static-binary system. Local cockpit UI. WireGuard mesh. No accounts, no cloud, no external authority. The user is the final authority.</div>
+      <div class="hero-meta">
+        <div class="hero-stat">
+          <div class="hero-stat-num">1.1<span style="font-size:14px;color:var(--mid)">MB</span></div>
+          <div class="hero-stat-lbl">ARMv6 BINARY</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">39<span style="font-size:14px;color:var(--mid)">/39</span></div>
+          <div class="hero-stat-lbl">TESTS PASSING</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">996<span style="font-size:14px;color:var(--mid)">KB</span></div>
+          <div class="hero-stat-lbl">IDLE RSS</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">32<span style="font-size:14px;color:var(--mid)"> nodes</span></div>
+          <div class="hero-stat-lbl">FLEET CEILING</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="principles">
+      <div class="principles-label">CONSTITUTIONAL PHILOSOPHY · §1.1</div>
+      <div class="principles-grid">
+        <div class="principle">
+          <div class="principle-icon">◈</div>
+          <div class="principle-name">Minimalism</div>
+          <div class="principle-def">Every byte justified. 1.1MB binary. Zero runtime deps.</div>
+        </div>
+        <div class="principle">
+          <div class="principle-icon">⬡</div>
+          <div class="principle-name">Determinism</div>
+          <div class="principle-def">Same inputs, same outputs. No ambient state.</div>
+        </div>
+        <div class="principle">
+          <div class="principle-icon">◉</div>
+          <div class="principle-name">Immutability</div>
+          <div class="principle-def">/system read-only after SEAL. No silent mutation.</div>
+        </div>
+        <div class="principle">
+          <div class="principle-icon">◧</div>
+          <div class="principle-name">Zero Trust</div>
+          <div class="principle-def">Three-way match: identity + WireGuard + system.bin.</div>
+        </div>
+        <div class="principle">
+          <div class="principle-icon">◱</div>
+          <div class="principle-name">Fail-Closed</div>
+          <div class="principle-def">Any violation → halt. Never partial trust.</div>
+        </div>
+        <div class="principle">
+          <div class="principle-icon">◫</div>
+          <div class="principle-name">Sovereignty</div>
+          <div class="principle-def">No remote override. No hidden authority. User is law.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lifecycle-wrap">
+      <div class="lifecycle-label">LIFECYCLE STATE MACHINE · §3</div>
+      <div class="lifecycle-diagram">
+        <div>
+          <span class="lc-state lc-genesis">GENESIS</span>
+          <span class="lc-arrow">→</span>
+          <span class="lc-state lc-landing">LANDING</span>
+          <span class="lc-arrow">→</span>
+          <span class="lc-state lc-apply">APPLY</span>
+          <span class="lc-arrow">→</span>
+          <span class="lc-state lc-seal">SEAL</span>
+        </div>
+        <div style="margin-top:8px; padding-left: 182px;">
+          <span class="lc-arrow" style="margin:0">↑</span>
+          <span style="margin-left:14px;color:var(--dim);font-size:10px;">↓</span>
+        </div>
+        <div style="padding-left: 164px;">
+          <span class="lc-state lc-rollback">ROLLBACK</span>
+          <span class="lc-arrow">←</span>
+          <span style="color:var(--dim);font-size:10px;vertical-align:middle">from SEAL only</span>
+        </div>
+        <div style="margin-top:8px; padding-left: 164px; color:var(--dim); font-size:10px;">
+          ↑ <span style="margin-left:8px;font-style:italic">(REBUILD)</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:10px;color:var(--dim);font-style:italic;">
+        Click <strong style="color:var(--text)">Lifecycle</strong> in the sidebar for full state definitions and transition rules.
+      </div>
+    </div>
+
+    <!-- Quick-access disclosure cards -->
+    <div style="padding: 0 48px 40px;">
+      <div style="font-size:9px;letter-spacing:3px;color:var(--dim);margin-bottom:16px;">ARCHITECTURE AT A GLANCE</div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-frozen" style="border-radius:2px;width:8px;height:8px;flex-shrink:0"></span>
+          <span class="disc-id c-cyan">LAYER 0</span>
+          <span class="disc-title">The Vault — Sealed Core</span>
+          <span class="disc-ref">§1.2</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Static Rust binary. WireGuard mesh. Ed25519 identity. Memory-mapped binary state (<code>system.bin</code>). Read-only after SEAL. Fail-closed on any integrity violation. Binary size ≤ 1.1MB ARMv6, ≤ 2MB all targets.</p>
+          <p>Layer 0 is the only trusted execution boundary. Services cannot read <code>/config/keys/</code>, cannot write <code>/config/</code>, cannot touch <code>/system/</code>. Layer 0 failure is system failure. Layer 1 failure is isolated.</p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-info" style="border-radius:2px;width:8px;height:8px;flex-shrink:0"></span>
+          <span class="disc-id c-blue">LAYER 1</span>
+          <span class="disc-title">Service Layer — Daily Computing</span>
+          <span class="disc-ref">§11</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Modular isolated processes. Installed via <code>service_install</code> in LANDING only. Each service has a 400-byte <code>manifest.bin</code>, a single declared WireGuard-internal port, and sandboxed data at <code>/data/services/&lt;id&gt;/</code>.</p>
+          <p>Maximum 8 services. Service binary frozen after SEAL alongside core. A failing service does not affect Layer 0. Services run under <code>node</code> role — no escalation.</p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status" style="background:#a78bfa;border-radius:2px;width:8px;height:8px;flex-shrink:0"></span>
+          <span class="disc-id" style="color:#a78bfa">TECH</span>
+          <span class="disc-title">Technology Stack</span>
+          <span class="disc-ref">§5, §11</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p><strong style="color:var(--hi)">Core persistence:</strong> <code>binary_layout</code> — zero-copy, little-endian, compile-time offsets, memory-mapped. No heap allocation during read/write.</p>
+          <p><strong style="color:var(--hi)">Service config:</strong> <code>binrw</code> — declarative parsing for dynamic service data. Not used in Layer 0.</p>
+          <p><strong style="color:var(--hi)">Scripting runtime:</strong> QuickJS via <code>quickjs-rs</code> (~2MB). Reference-counting GC, &lt;300µs startup. AArch64 + x86_64 only. ARMv6 rejected at APPLY.</p>
+          <p><strong style="color:var(--hi)">OS:</strong> Alpine Linux diskless — full system in RAM, <code>lbu</code> for persistence overlay. musl static linking, zero runtime dependencies.</p>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- LIFECYCLE -->
+  <section id="sec-lifecycle" class="section">
+    <div class="content-section">
+      <div class="cs-eyebrow">CONSTITUTION §3</div>
+      <div class="cs-title">Lifecycle State Machine <span class="ibadge ib-frozen">FROZEN</span></div>
+      <div class="cs-lead">Six states. Unidirectional except for recovery paths. ROLLBACK is a binary atomic switch originating from SEAL only — v1 is authoritative on this point.</div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status" style="background:#a78bfa"></span>
+          <span class="disc-id" style="color:#a78bfa">GENESIS</span>
+          <span class="disc-title">Identity creation, initial config</span>
+          <span class="disc-ref">§3.1</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Ed25519 identity key generated locally. WireGuard X25519 keypair created. <code>system.json</code> written (v1) or <code>system.bin</code> initialized (v2). No services installed. Legacy JSON import accepted here only.</p>
+          <p>GENESIS is the only state where new identity can be created. After GENESIS, identity is immutable until Re-Genesis (which destroys it).</p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-info"></span>
+          <span class="disc-id c-blue">LANDING</span>
+          <span class="disc-title">Mutable staging environment</span>
+          <span class="disc-ref">§3.2</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>The only state where services may be installed or removed. WireGuard keys are rotatable in LANDING. Configuration is mutable. This is the pre-production holding state before APPLY convergence.</p>
+          <p>Key rotation in LANDING follows fleet consensus: old key remains active until all nodes acknowledge the new key. Non-acknowledging nodes are marked unreachable and must re-pair. <span class="disc-note">REF: §9.2 (v1 §8.2/§8.4 carried forward)</span></p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-warn"></span>
+          <span class="disc-id c-warn">APPLY</span>
+          <span class="disc-title">Atomic convergence of intent → reality</span>
+          <span class="disc-ref">§3.3</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Atomic convergence step. Service manifests validated. Fleet ceiling (32 nodes) enforced. Service ceiling (8 services) enforced. ARMv6 nodes reject <code>sealed_js</code> services here. State transitions to binary format after APPLY — JSON no longer authoritative.</p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-pass"></span>
+          <span class="disc-id c-pass">SEAL</span>
+          <span class="disc-title">Immutable, production, locked</span>
+          <span class="disc-ref">§3.4</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p><code>/system/</code> and <code>/config/</code> become read-only. Service binaries frozen alongside core. No configuration changes permitted. Cockpit is observation-only. This is the normal operating state.</p>
+          <p>SEAL is the only valid origin state for ROLLBACK.</p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-fail"></span>
+          <span class="disc-id c-fail">ROLLBACK</span>
+          <span class="disc-title">Atomic binary switch, no state change</span>
+          <span class="disc-ref">§3.5</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Reverts the active binary to the previous known-good version. State is not modified. Service state preserved across rollback. This is a pure binary swap — integrity guarantees rest on build artifacts.</p>
+          <p><strong style="color:var(--hi)">Origin: SEAL only.</strong> v1 is authoritative. ROLLBACK reverts a deployed binary; a binary is only deployed after SEAL. <span class="disc-note">REF: C-04 resolved 2026-06-07</span></p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status" style="background:var(--mid)"></span>
+          <span class="disc-id" style="color:var(--mid)">REBUILD</span>
+          <span class="disc-title">Full reinstall of /system</span>
+          <span class="disc-ref">§3.6</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Full reinstall of <code>/system</code>. Optional restore of <code>/config</code>, <code>/data/storage</code>, and <code>/data/services</code> from backup. Services re-installed from manifests during LANDING after REBUILD. Re-Genesis is the nuclear option: destroys identity, removes all services, creates new identity.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- STATE MODEL -->
+  <section id="sec-state" class="section">
+    <div class="content-section">
+      <div class="cs-eyebrow">CONSTITUTION §4–5</div>
+      <div class="cs-title">State Model <span class="ibadge ib-frozen">FROZEN</span></div>
+      <div class="cs-lead">v2 migrates from <code>serde_json</code> → <code>binary_layout</code>. Memory-mapped, little-endian, compile-time offsets, SHA-256 integrity at startup. No heap allocation during read or write.</div>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>FIELD</th>
+            <th>DESCRIPTION</th>
+            <th>CONSTRAINT</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>self</td>
+            <td>Node identity, fingerprints, build info</td>
+            <td class="ref-val">immutable after SEAL</td>
+          </tr>
+          <tr>
+            <td>wg</td>
+            <td>WireGuard public key, endpoint, mesh config</td>
+            <td class="ref-val">rotatable in LANDING</td>
+          </tr>
+          <tr>
+            <td>backup</td>
+            <td>Last backup timestamp, snapshot manifest</td>
+            <td class="ref-val">—</td>
+          </tr>
+          <tr>
+            <td>fleet</td>
+            <td>Known nodes, fingerprints, online status</td>
+            <td class="ref-val">max 32 entries (v2)</td>
+          </tr>
+          <tr>
+            <td>permissions</td>
+            <td>Role assignments, action allow-lists</td>
+            <td class="ref-val">no wildcards</td>
+          </tr>
+          <tr>
+            <td>services</td>
+            <td>Installed service entries <span class="ibadge ib-v2new">v2</span></td>
+            <td class="ref-val">max 8 entries</td>
+          </tr>
+          <tr>
+            <td>ts</td>
+            <td>Last state write timestamp (u64 unix)</td>
+            <td class="ref-val">—</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-pass"></span>
+          <span class="disc-id c-pass">§5.1</span>
+          <span class="disc-title">Persistence format — binary_layout</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Location: <code>/config/system.bin</code>. Encoding: <code>binary_layout</code>, little-endian. All field offsets computed at compile time via const generics. Memory-mapped — state updates write directly to mapped memory, OS handles persistence. No JSON after APPLY.</p>
+          <p>Legacy <code>/config/system.json</code> accepted for import during GENESIS only. After APPLY, binary format is the sole authoritative representation.</p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-pass"></span>
+          <span class="disc-id c-pass">§5.5</span>
+          <span class="disc-title">Integrity check at startup</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>SHA-256 of <code>system.bin</code> verified at every startup. Mismatch → fail-closed (<code>exit(1)</code>). This is the first operation in <code>main.rs</code>, before any other initialization. A compromised state file will never silently execute.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- IDENTITY -->
+  <section id="sec-identity" class="section">
+    <div class="content-section">
+      <div class="cs-eyebrow">CONSTITUTION §8–9</div>
+      <div class="cs-title">Identity & Key Contract <span class="ibadge ib-frozen">FROZEN</span></div>
+      <div class="cs-lead">Cryptographic identity is generated locally at GENESIS and never leaves the node. Trust is three-way: identity fingerprint + WireGuard fingerprint + listing in system.bin. Any single match failure = rejection.</div>
+
+      <table class="spec-table">
+        <thead><tr><th>KEY TYPE</th><th>ALGORITHM</th><th>LIFECYCLE</th><th>STORAGE</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Identity</td>
+            <td class="mono-val">Ed25519</td>
+            <td>GENESIS only, immutable after SEAL</td>
+            <td class="mono-val">/config/keys/</td>
+          </tr>
+          <tr>
+            <td>WireGuard</td>
+            <td class="mono-val">X25519</td>
+            <td>Rotatable in LANDING only, immutable after SEAL</td>
+            <td class="mono-val">/config/keys/</td>
+          </tr>
+          <tr>
+            <td>Fingerprints</td>
+            <td class="mono-val">SHA-256</td>
+            <td>Derived from public keys</td>
+            <td class="mono-val">system.bin · fleet entries</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-pass"></span>
+          <span class="disc-id c-pass">§9.2</span>
+          <span class="disc-title">WireGuard key rotation consensus (v1 rule carried forward)</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Old key remains active until <strong style="color:var(--hi)">all fleet nodes acknowledge</strong> the new key. Non-acknowledging nodes are marked unreachable and must re-pair. Grace period must not be removed. This prevents a split-fleet scenario where some nodes still present the old key.</p>
+          <p>v2 adds: auto endpoint negotiation initiated by the node with the lower identity fingerprint. Deterministic tie-breaking prevents race conditions on first handshake. <span class="disc-note">REF: S-04 resolved 2026-06-07 — v1 §8.2/§8.4 explicitly carried forward</span></p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-info"></span>
+          <span class="disc-id c-blue">§9.5</span>
+          <span class="disc-title">Service identity (v2 new)</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Services have no independent identity. A service inherits the node fingerprint of its host. Services cannot present themselves as independent fleet members. The node is the trust boundary; services are subordinate.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- NETWORK -->
+  <section id="sec-network" class="section">
+    <div class="content-section">
+      <div class="cs-eyebrow">CONSTITUTION §10</div>
+      <div class="cs-title">Network Contract <span class="ibadge ib-frozen">FROZEN</span></div>
+      <div class="cs-lead">Two allowed surfaces. Everything else forbidden. Internal IPs derived deterministically from cryptographic fingerprints — no central naming server, no DHCP, no DNS dependency.</div>
+
+      <table class="spec-table">
+        <thead><tr><th>SURFACE</th><th>STATUS</th><th>NOTES</th></tr></thead>
+        <tbody>
+          <tr><td>Local cockpit HTTP</td><td class="c-pass">ALLOWED</td><td>Observation-only after SEAL</td></tr>
+          <tr><td>WireGuard mesh</td><td class="c-pass">ALLOWED</td><td>All inter-node communication</td></tr>
+          <tr><td>Service ports</td><td class="c-pass">ALLOWED</td><td class="mono-val">WireGuard-internal only, declared in manifest.bin</td></tr>
+          <tr><td>SSH</td><td class="c-fail">FORBIDDEN</td><td>—</td></tr>
+          <tr><td>Generic TCP (external)</td><td class="c-fail">FORBIDDEN</td><td>—</td></tr>
+          <tr><td>UPnP</td><td class="c-fail">FORBIDDEN</td><td>—</td></tr>
+          <tr><td>Dynamic discovery</td><td class="c-fail">FORBIDDEN</td><td>Beyond minimal local probe</td></tr>
+        </tbody>
+      </table>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-fail"></span>
+          <span class="disc-id c-fail">§10.3</span>
+          <span class="disc-title">Lockdown behavior</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Drops all WireGuard tunnels AND all service ports. Complete node isolation. v2 extends v1 lockdown to cover service ports — v1 dropped tunnels only. No exceptions.</p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-info"></span>
+          <span class="disc-id c-blue">§10.4</span>
+          <span class="disc-title">Service network rules (v2 new)</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Each service may bind exactly one declared port within the WireGuard interface. Services may not open external sockets. Port declarations are immutable after SEAL. The single-port constraint enforces minimal attack surface per service.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ACTIONS -->
+  <section id="sec-actions" class="section">
+    <div class="content-section">
+      <div class="cs-eyebrow">CONSTITUTION §6–7</div>
+      <div class="cs-title">API Action Contract <span class="ibadge ib-frozen">FROZEN</span></div>
+      <div class="cs-lead">Every action is atomic, permission-checked, lifecycle-checked, and event-emitting. No other actions exist in v1 or v2. No wildcards. No dynamic dispatch.</div>
+
+      <table class="spec-table">
+        <thead><tr><th>ACTION</th><th>MIN ROLE</th><th>VALID STATES</th><th>VERSION</th></tr></thead>
+        <tbody>
+          <tr><td class="mono-val">pair</td><td>admin</td><td>LANDING</td><td class="ref-val">v1</td></tr>
+          <tr><td class="mono-val">seal</td><td>admin</td><td>APPLY</td><td class="ref-val">v1</td></tr>
+          <tr><td class="mono-val">backup_now</td><td>operator</td><td>SEAL</td><td class="ref-val">v1</td></tr>
+          <tr><td class="mono-val">rotate_keys</td><td>admin</td><td>LANDING</td><td class="ref-val">v1</td></tr>
+          <tr><td class="mono-val">lockdown</td><td>admin</td><td>any</td><td class="ref-val">v1</td></tr>
+          <tr><td class="mono-val">rollback</td><td>admin</td><td>SEAL</td><td class="ref-val">v1</td></tr>
+          <tr><td class="mono-val">service_install</td><td>operator</td><td>LANDING only</td><td><span class="ibadge ib-v2new">v2</span></td></tr>
+          <tr><td class="mono-val">service_remove</td><td>operator</td><td>LANDING only</td><td><span class="ibadge ib-v2new">v2</span></td></tr>
+        </tbody>
+      </table>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-pass"></span>
+          <span class="disc-id c-pass">§7</span>
+          <span class="disc-title">Permissions model — roles</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Four roles: <code>admin</code> · <code>operator</code> · <code>node</code> · <code>guest</code>. Role set is frozen — no dynamic roles, no wildcard permissions. Services run under <code>node</code> role and cannot escalate. Service actions require <code>operator</code> or higher.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="sec-services" class="section">
+    <div class="content-section">
+      <div class="cs-eyebrow">CONSTITUTION §11</div>
+      <div class="cs-title">Service Layer Contract <span class="ibadge ib-v2new">v2 NEW</span> <span class="ibadge ib-frozen">FROZEN</span></div>
+      <div class="cs-lead">Self-contained isolated processes on top of Layer 0. No access to identity keys, core config, or WireGuard private key. A failing service does not affect Layer 0.</div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-pass"></span>
+          <span class="disc-id c-pass">§11.3</span>
+          <span class="disc-title">Isolation rules</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Services may not read <code>/config/keys/</code>. Services may not read or write <code>/system/</code>. Services may not write <code>/config/</code>. Services may not spawn child processes outside their own directory. Services may not execute dynamic code — <strong style="color:var(--amber)">except <code>sealed_js</code> services under §11.7</strong> (explicit carve-out).</p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-info"></span>
+          <span class="disc-id c-blue">§11.4</span>
+          <span class="disc-title">Service lifecycle</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Install: LANDING only, via <code>service_install</code>. Remove: LANDING only, via <code>service_remove</code>. Start/stop: managed by <code>hsds-core</code>, event-emitted, not a separate API action. After SEAL: service binary and config are read-only.</p>
+          <p>Services do not restart automatically without explicit re-seal. A crashed service requires ROLLBACK → LANDING → APPLY → SEAL to restart. This is intentional — automatic restarts would allow a service to influence sealed state.</p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-pass"></span>
+          <span class="disc-id c-pass">§11.5</span>
+          <span class="disc-title">Configuration format</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Service configuration files use <code>binrw</code>-compatible binary formats. No JSON in service configuration. Config is bundled in the service archive alongside <code>manifest.bin</code> at install time.</p>
+          <p><code>binrw</code> handles variable-length strings, dynamic lists, and complex binary formats — things <code>binary_layout</code> avoids to maintain zero-copy semantics. Layer 1 trades some performance for maintainability and dynamic data support.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SEALED_JS -->
+  <section id="sec-sealed-js" class="section">
+    <div class="content-section">
+      <div class="cs-eyebrow">CONSTITUTION §11.7</div>
+      <div class="cs-title">sealed_js Service Type <span class="ibadge ib-v2new">v2 NEW</span> <span class="ibadge ib-frozen">FROZEN</span></div>
+      <div class="cs-lead">QuickJS bytecode execution carved out from the §11.3 "no dynamic code" rule. Compile-time constraints fully specified. Runtime interpretation of pre-compiled bytecode is not dynamic code execution under the Constitution.</div>
+
+      <table class="spec-table">
+        <thead><tr><th>CONSTRAINT</th><th>VALUE</th></tr></thead>
+        <tbody>
+          <tr><td>Runtime</td><td class="mono-val">QuickJS via quickjs-rs</td></tr>
+          <tr><td>Architecture</td><td class="c-pass">AArch64 + x86_64 only</td></tr>
+          <tr><td>ARMv6</td><td class="c-fail">Rejected at APPLY</td></tr>
+          <tr><td>Binary ceiling</td><td class="mono-val">≤ 8MB</td></tr>
+          <tr><td>Compilation</td><td>JS → bytecode at install time</td></tr>
+          <tr><td>script_hash</td><td>Verified at service start</td></tr>
+          <tr><td>eval()</td><td class="c-fail">DISABLED</td></tr>
+          <tr><td>Function()</td><td class="c-fail">DISABLED</td></tr>
+          <tr><td>Dynamic import</td><td class="c-fail">DISABLED</td></tr>
+          <tr><td>Remote loading</td><td class="c-fail">DISABLED</td></tr>
+        </tbody>
+      </table>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-pass"></span>
+          <span class="disc-id c-pass">RATIONALE</span>
+          <span class="disc-title">Why QuickJS, not V8</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p><strong style="color:var(--hi)">Footprint:</strong> QuickJS produces ~4KB for a hello-world; V8 (Rusty V8) approaches 50MB binary overhead. HSDS binary ceiling is 8MB for sealed_js services — V8 is structurally impossible.</p>
+          <p><strong style="color:var(--hi)">GC:</strong> QuickJS uses reference-counting GC. Deterministic, no stop-the-world pauses, compatible with ARMv6 timing constraints (for non-sealed_js services).</p>
+          <p><strong style="color:var(--hi)">Startup:</strong> QuickJS runtime initialization &lt; 300µs. Suitable for headless service restarts without visible latency.</p>
+          <p><strong style="color:var(--hi)">ES2023:</strong> Full spec coverage including modules, async generators, proxies, BigInt. Sufficient for Layer 1 service logic.</p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-pass"></span>
+          <span class="disc-id c-pass">§11.2</span>
+          <span class="disc-title">Manifest fields for sealed_js</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p><code>script_type[1]</code> — value <code>0x01</code> indicates sealed_js. Carved from <code>reserved[]</code>.</p>
+          <p><code>script_hash[32]</code> — SHA-256 of the compiled bytecode bundle. Verified at service start. Mismatch → service rejected, event emitted, Layer 0 unaffected.</p>
+          <p>Both fields fit within the 400-byte manifest: reserved field is <code>[u8; 84]</code> after allocating <code>script_type[1]</code> + <code>script_hash[32]</code>. Byte sum verified: 400. <span class="disc-note">REF: C-05-FLAG resolved 2026-06-07</span></p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- MANIFEST -->
+  <section id="sec-manifest" class="section">
+    <div class="content-section">
+      <div class="cs-eyebrow">CONSTITUTION §11.2</div>
+      <div class="cs-title">Manifest Format <span class="ibadge ib-frozen">FROZEN</span></div>
+      <div class="cs-lead">400-byte fixed binary. Every service must include <code>manifest.bin</code>. Total byte sum is an invariant: any layout change requires a version designation and migration clause.</div>
+
+      <div class="manifest-grid">
+        <div class="mf-row mf-header">
+          <div class="mf-field">FIELD</div>
+          <div class="mf-type">TYPE</div>
+          <div class="mf-bytes">BYTES</div>
+          <div class="mf-note">NOTES</div>
+        </div>
+        <div class="mf-row">
+          <div class="mf-field">magic</div>
+          <div class="mf-type">[u8; 7]</div>
+          <div class="mf-bytes">7</div>
+          <div class="mf-note">"HSDS_SV"</div>
+        </div>
+        <div class="mf-row">
+          <div class="mf-field">version</div>
+          <div class="mf-type">u16</div>
+          <div class="mf-bytes">2</div>
+          <div class="mf-note">manifest schema version</div>
+        </div>
+        <div class="mf-row">
+          <div class="mf-field">service_id</div>
+          <div class="mf-type">[u8; 16]</div>
+          <div class="mf-bytes">16</div>
+          <div class="mf-note">UUID-style identifier</div>
+        </div>
+        <div class="mf-row">
+          <div class="mf-field">name</div>
+          <div class="mf-type">[u8; 64]</div>
+          <div class="mf-bytes">64</div>
+          <div class="mf-note">null-padded display name</div>
+        </div>
+        <div class="mf-row">
+          <div class="mf-field">owner_fingerprint</div>
+          <div class="mf-type">[u8; 64]</div>
+          <div class="mf-bytes">64</div>
+          <div class="mf-note">node Ed25519 fingerprint</div>
+        </div>
+        <div class="mf-row">
+          <div class="mf-field">entry_point</div>
+          <div class="mf-type">[u8; 128]</div>
+          <div class="mf-bytes">128</div>
+          <div class="mf-note">null-padded path</div>
+        </div>
+        <div class="mf-row">
+          <div class="mf-field">declared_port</div>
+          <div class="mf-type">u16</div>
+          <div class="mf-bytes">2</div>
+          <div class="mf-note">0 = no port</div>
+        </div>
+        <div class="mf-row">
+          <div class="mf-field">script_type</div>
+          <div class="mf-type">[u8; 1]</div>
+          <div class="mf-bytes">1</div>
+          <div class="mf-note">0x00 = none · 0x01 = sealed_js</div>
+        </div>
+        <div class="mf-row">
+          <div class="mf-field">script_hash</div>
+          <div class="mf-type">[u8; 32]</div>
+          <div class="mf-bytes">32</div>
+          <div class="mf-note">SHA-256 of bytecode bundle</div>
+        </div>
+        <div class="mf-row">
+          <div class="mf-field">reserved</div>
+          <div class="mf-type">[u8; 84]</div>
+          <div class="mf-bytes">84</div>
+          <div class="mf-note">must be zero</div>
+        </div>
+        <div class="mf-row mf-total">
+          <div class="mf-field" style="color:var(--dim)">TOTAL</div>
+          <div class="mf-type"></div>
+          <div class="mf-bytes">400</div>
+          <div class="mf-note" style="color:var(--green)">✓ verified</div>
+        </div>
+      </div>
+
+      <div style="font-size:10px;color:var(--dim);font-style:italic;margin-top:8px;">
+        Invariant: declared manifest size must equal the sum of all field widths. Any change to the layout requires a new version designation and a migration clause.
+      </div>
+
+    </div>
+  </section>
+
+  <!-- HARDWARE -->
+  <section id="sec-hardware" class="section">
+    <div class="content-section">
+      <div class="cs-eyebrow">CONSTITUTION §15</div>
+      <div class="cs-title">Hardware Targets <span class="ibadge ib-frozen">FROZEN</span></div>
+      <div class="cs-lead">All targets produce static binaries with zero runtime dependencies. Binary size ≤ 2MB. Runtime RSS ≤ 2MB idle (core only, excluding service processes). No dynamic linking permitted.</div>
+
+      <div class="hw-grid">
+        <div class="hw-card">
+          <div class="hw-card-head">PRIMARY</div>
+          <div class="hw-card-target">arm-unknown-linux-musleabihf</div>
+          <div class="hw-card-device">Raspberry Pi Zero W</div>
+          <div class="hw-card-specs">
+            Binary: <span>1.1MB</span><br>
+            RSS idle: <span>~996KB</span><br>
+            sealed_js: <span style="color:var(--red)">rejected at APPLY</span>
+          </div>
+        </div>
+        <div class="hw-card">
+          <div class="hw-card-head">PRIMARY</div>
+          <div class="hw-card-target">aarch64-unknown-linux-musl</div>
+          <div class="hw-card-device">Raspberry Pi 4 / equivalents</div>
+          <div class="hw-card-specs">
+            Binary: <span>≤2MB</span><br>
+            sealed_js: <span style="color:var(--green)">allowed</span>
+          </div>
+        </div>
+        <div class="hw-card">
+          <div class="hw-card-head">DEVELOPMENT</div>
+          <div class="hw-card-target">x86_64-unknown-linux-musl</div>
+          <div class="hw-card-device">Dell workstation / CI</div>
+          <div class="hw-card-specs">
+            Binary: <span>~1.2MB</span><br>
+            sealed_js: <span style="color:var(--green)">allowed</span>
+          </div>
+        </div>
+        <div class="hw-card">
+          <div class="hw-card-head">FUTURE / TRACKED</div>
+          <div class="hw-card-target">riscv64gc-unknown-linux-musl</div>
+          <div class="hw-card-device">RISC-V boards</div>
+          <div class="hw-card-specs">
+            Status: <span style="color:var(--amber)">tracked, not v2 required</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECURITY -->
+  <section id="sec-security" class="section">
+    <div class="content-section">
+      <div class="cs-eyebrow">CONSTITUTION §11–13</div>
+      <div class="cs-title">Security Contract <span class="ibadge ib-frozen">FROZEN</span></div>
+      <div class="cs-lead">Fail-closed is not a feature — it is the only response to any violation. No partial trust. No graceful degradation. Halt and alert.</div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-pass"></span>
+          <span class="disc-id c-pass">§13.1</span>
+          <span class="disc-title">Integrity surfaces</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Six integrity planes, all monitored: binary integrity (core) · binary integrity (services) · config integrity · directory integrity · WireGuard integrity · state file integrity (SHA-256 of <code>system.bin</code>).</p>
+          <p>All six must hold. Violation on any plane → isolate, reject, alert. No exceptions.</p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-pass"></span>
+          <span class="disc-id c-pass">§13.3</span>
+          <span class="disc-title">No shell, no root</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>No interactive execution surfaces at any layer. Services do not run as root. No <code>sudo</code> path. No shell spawning. The attack surface is: one WebSocket endpoint, one HTTP cockpit endpoint, one WireGuard port. Nothing else is listening.</p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-pass"></span>
+          <span class="disc-id c-pass">ZERO TRUST</span>
+          <span class="disc-title">Three-way identity match</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>A node trusts another only if: (1) identity fingerprint matches, (2) WireGuard fingerprint matches, (3) node is listed in <code>system.bin</code>. All three conditions must hold simultaneously. Failure on any single condition = rejection. No partial trust, no fallback.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- RECOVERY -->
+  <section id="sec-recovery" class="section">
+    <div class="content-section">
+      <div class="cs-eyebrow">CONSTITUTION §14</div>
+      <div class="cs-title">Recovery Contract <span class="ibadge ib-frozen">FROZEN</span></div>
+      <div class="cs-lead">Four recovery paths. All reversible except Re-Genesis. Every node ships with offline recovery documents readable without tooling.</div>
+
+      <table class="spec-table">
+        <thead><tr><th>PATH</th><th>SCOPE</th><th>VALID STATE</th><th>IRREVERSIBLE</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>ROLLBACK</td>
+            <td>Binary swap only</td>
+            <td>SEAL</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td>Restore</td>
+            <td>/config + /data/storage + /data/services</td>
+            <td>REBUILD</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td>REBUILD</td>
+            <td>Reinstall /system, optional restore</td>
+            <td>any</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td>Re-Genesis</td>
+            <td>Destroy identity, all services removed</td>
+            <td>any</td>
+            <td class="c-fail">Yes</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-info"></span>
+          <span class="disc-id c-blue">§14.1</span>
+          <span class="disc-title">Backup scope (v2 extended)</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Atomic snapshots of: <code>/config</code> · <code>/data/storage</code> · <code>/data/services</code>. v2 adds <code>/data/services</code> to backup scope. All snapshots are atomic. SHA-256 manifest per snapshot.</p>
+          <p>Note: <code>/config</code> includes <code>/config/keys/</code>. Keys are backed up intentionally — needed for recovery. 700 permissions enforced; keys never included in event streams or cockpit output.</p>
+        </div>
+      </div>
+
+      <div class="disclosure">
+        <div class="disc-trigger" onclick="toggle(this)">
+          <span class="disc-status s-pass"></span>
+          <span class="disc-id c-pass">§16</span>
+          <span class="disc-title">Human recovery documents</span>
+          <span class="disc-chevron">▼</span>
+        </div>
+        <div class="disc-body">
+          <p>Every node must include: <code>GJENOPPRETTING.md</code> · <code>HSDSv1Constitution.md</code> · <code>HSDSv2Constitution.md</code>. These documents must be readable offline, without tooling, in plaintext. The system must be recoverable by a human with only these documents and a working machine.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- INTEROP -->
+  <section id="sec-interop" class="section">
+    <div class="content-section">
+      <div class="cs-eyebrow">CONSTITUTION §17</div>
+      <div class="cs-title">v1 Interoperability <span class="ibadge ib-frozen">FROZEN</span></div>
+      <div class="cs-lead">v1 nodes are permanently valid members of a v2 fleet. Mixed fleets are a supported, tested configuration. v1 is not deprecated.</div>
+
+      <table class="spec-table">
+        <thead><tr><th>RULE</th><th>BEHAVIOR</th></tr></thead>
+        <tbody>
+          <tr><td>v1 node in v2 fleet</td><td class="c-pass">Fully supported, permanently valid</td></tr>
+          <tr><td>v2 node accepts v1 identity</td><td class="c-pass">Required</td></tr>
+          <tr><td>service_install/remove to v1 node</td><td>Not forwarded — silently dropped</td></tr>
+          <tr><td>v1 node receives v2 state</td><td>Unknown fields silently ignored</td></tr>
+          <tr><td>Mixed fleet (v1+v2)</td><td class="c-pass">Supported, tested configuration</td></tr>
+          <tr><td>v1 Constitution</td><td>Immutable forever</td></tr>
+        </tbody>
+      </table>
+
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section id="sec-roadmap" class="section">
+    <div class="content-section">
+      <div class="cs-eyebrow">ENGINEERING ROADMAP</div>
+      <div class="cs-title">Phase 1+ Implementation</div>
+      <div class="cs-lead">v2 Constitution frozen 2026-06-07. All 5 blockers resolved. Implementation work unblocked. v1 production on Dell x86_64 + Pi Zero ARMv6, both at SEAL.</div>
+
+      <table class="spec-table">
+        <thead><tr><th>TASK</th><th>STATUS</th><th>REF</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Fix manifest byte sum (reserved[84])</td>
+            <td class="c-pass">✓ RESOLVED 2026-06-07</td>
+            <td class="ref-val">C-05-FLAG</td>
+          </tr>
+          <tr>
+            <td>ROLLBACK origin — SEAL only</td>
+            <td class="c-pass">✓ RESOLVED 2026-06-07</td>
+            <td class="ref-val">C-04</td>
+          </tr>
+          <tr>
+            <td>§11.7 sealed_js carve-out</td>
+            <td class="c-pass">✓ RESOLVED 2026-06-07</td>
+            <td class="ref-val">S-07</td>
+          </tr>
+          <tr>
+            <td>Key rotation consensus in §9.2</td>
+            <td class="c-pass">✓ RESOLVED 2026-06-07</td>
+            <td class="ref-val">S-04</td>
+          </tr>
+          <tr>
+            <td>v2 skill pack (8 files)</td>
+            <td class="c-pass">✓ COMMITTED</td>
+            <td class="ref-val">I-06</td>
+          </tr>
+          <tr>
+            <td>Binary layout migration (serde_json → system.bin)</td>
+            <td class="c-warn">NEXT — Phase 1</td>
+            <td class="ref-val">v2 §5.1</td>
+          </tr>
+          <tr>
+            <td>services state field in hsds-core</td>
+            <td class="c-warn">Phase 1</td>
+            <td class="ref-val">v2 §4</td>
+          </tr>
+          <tr>
+            <td>service_install + service_remove actions</td>
+            <td class="c-warn">Phase 1</td>
+            <td class="ref-val">v2 §7.2</td>
+          </tr>
+          <tr>
+            <td>Services panel in cockpit UI</td>
+            <td class="c-warn">Phase 1</td>
+            <td class="ref-val">v2 §12.3</td>
+          </tr>
+          <tr>
+            <td>Fleet ceiling validation (32 nodes) at APPLY</td>
+            <td class="c-warn">Phase 1</td>
+            <td class="ref-val">v2 §5.2</td>
+          </tr>
+          <tr>
+            <td>RSS benchmark: 32 nodes + 8 services on ARMv6</td>
+            <td class="c-dim">Phase 1</td>
+            <td class="ref-val">C-09</td>
+          </tr>
+          <tr>
+            <td>WireGuard auto endpoint negotiation</td>
+            <td class="c-dim">Phase 2</td>
+            <td class="ref-val">v2 §9.2</td>
+          </tr>
+          <tr>
+            <td>v2 test suite — binary state, service layer, mixed fleet</td>
+            <td class="c-dim">Phase 2–3</td>
+            <td class="ref-val">D-04</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top:24px;font-size:10px;color:var(--dim);">
+        <div style="margin-bottom:6px;">BRANCH — <span style="color:var(--cyan)">hsds-v2-draft-dev</span> (ViewAiO/HSDS)</div>
+        <div style="margin-bottom:6px;">NODES — Dell x86_64 · Pi Zero ARMv6 · both at SEAL</div>
+        <div>CONSTITUTION — v1 frozen · v2 frozen 2026-06-07 · next change requires v3</div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+</div>
+
+<!-- ── FOOTER ── -->
+<div id="footer">
+  <div class="footer-txt">HSDS · SOVEREIGN PERSONAL COMPUTE NODE · 2026-06-07</div>
+  <a class="footer-link" href="https://github.com/tdraft001-sudo/SOVEREIGN-PERSONAL-COMPUTE-NODE" target="_blank">
+    github.com/tdraft001-sudo/SOVEREIGN-PERSONAL-COMPUTE-NODE
+  </a>
+  <div class="footer-txt">v1 PRODUCTION · v2 FROZEN · PROGRESSIVE DISCLOSURE REFERENCE</div>
+</div>
+
+<script>
+// ── NAV ──
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const sec = document.getElementById('sec-' + id);
+  if (sec) sec.classList.add('active');
+
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) {
+      n.classList.add('active');
+    }
+  });
+
+  // Scroll to top of main
+  document.getElementById('main').scrollTop = 0;
+
+  return false;
+}
+
+// ── DISCLOSURE TOGGLE ──
+function toggle(trigger) {
+  const body = trigger.nextElementSibling;
+  const isOpen = body.classList.toggle('open');
+  trigger.classList.toggle('open', isOpen);
+}
+</script>
+</body>
+</html>
